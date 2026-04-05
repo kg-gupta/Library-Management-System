@@ -1,0 +1,29 @@
+# Virtual environment — never upload this, it is huge
+library/
+venv/
+
+# Python cache files — auto-generated, not needed
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables file — contains passwords, never upload
+.env
+*.env
+
+# Database file (SQLite, not relevant here but good practice)
+db.sqlite3
+
+# Media files — uploaded images
+media/
+
+# VS Code settings
+.vscode/
+
+# Windows system files
+Thumbs.db
+desktop.ini
+
+# Django collected static files
+staticfiles/

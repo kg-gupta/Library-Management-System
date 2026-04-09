@@ -4,6 +4,9 @@ from django.contrib import messages
 from datetime import date, timedelta
 from .models import BorrowRecord
 from books.models import Book
+from notifications.utils import (
+    notify_fine, notify_return_confirmed, notify_due_soon
+)
 
 
 @login_required
@@ -52,36 +55,41 @@ def borrow_book(request, book_id):
 @login_required
 def return_book(request, record_id):
     record = get_object_or_404(
-        BorrowRecord,
-        id=record_id,
-        user=request.user
+        BorrowRecord, id=record_id, user=request.user
     )
 
     if record.status == 'returned':
         messages.info(request, 'This book has already been returned.')
         return redirect('transactions:my_books')
 
-    record.return_date = date.today()
+    today = date.today()
+    record.return_date = today   # always use today, never a past date
     record.fine_amount = record.calculate_fine()
     record.status = 'returned'
     record.save()
 
     record.book.available_copies += 1
     record.book.save()
+    if record.fine_amount > 0:
+        days_late = (record.return_date - record.due_date).days
+        notify_fine(request.user, record.book.title, record.fine_amount, days_late)
+        messages.warning(request, f'"{record.book.title}" returned. Fine: ₹{record.fine_amount:.2f}.')
+    else:
+        notify_return_confirmed(request.user, record.book.title)
+        messages.success(request, f'"{record.book.title}" returned successfully. Thank you!')
 
     if record.fine_amount > 0:
         days_late = (record.return_date - record.due_date).days
         messages.warning(
             request,
-            f'"{record.book.title}" returned. You are {days_late} day(s) '
-            f'late. Fine: ₹{record.fine_amount:.2f}.'
+            f'"{record.book.title}" returned. You are {days_late} '
+            f'day(s) late. Fine: ₹{record.fine_amount:.2f}.'
         )
     else:
         messages.success(
             request,
             f'"{record.book.title}" returned successfully. Thank you!'
         )
-
     return redirect('transactions:my_books')
 
 

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}My Notifications{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-bell me-2"></i>My Notifications</h2>
+</div>
+
+{% if notifications %}
+    {% for notification in notifications %}
+    <div class="card mb-3 {% if not notification.is_read %}border-primary{% endif %}">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">
+                        {% if notification.notification_type == 'fine' %}
+                            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+                        {% elif notification.notification_type == 'overdue' %}
+                            <i class="bi bi-clock text-warning me-2"></i>
+                        {% elif notification.notification_type == 'due_soon' %}
+                            <i class="bi bi-calendar-check text-info me-2"></i>
+                        {% elif notification.notification_type == 'return' %}
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                        {% else %}
+                            <i class="bi bi-megaphone text-primary me-2"></i>
+                        {% endif %}
+                        {{ notification.title }}
+                    </h6>
+                    <p class="text-muted mb-1">{{ notification.message }}</p>
+                    <small class="text-muted">
+                        {{ notification.created_at|date:"d M Y, h:i A" }}
+                    </small>
+                </div>
+                {% if not notification.is_read %}
+                    <span class="badge bg-primary">New</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-bell-slash text-muted" style="font-size:3rem;"></i>
+        <p class="mt-3 text-muted">No notifications yet.</p>
+    </div>
+{% endif %}
+{% endblock %}

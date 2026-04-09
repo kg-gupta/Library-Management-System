@@ -28,6 +28,7 @@ urlpatterns = [
     path('transactions/', include('transactions.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('', lambda request: redirect('books:list')),
+    path('notifications/', include('notifications.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
 ]
 

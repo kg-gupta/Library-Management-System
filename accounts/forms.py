@@ -1,24 +1,29 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.core.validators import RegexValidator
 from .models import CustomUser
 
+phone_validator = RegexValidator(
+    regex=r'^\d{10}$',
+    message='Phone number must be exactly 10 digits. No spaces or symbols.'
+)
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=50, required=True)
     last_name = forms.CharField(max_length=50, required=True)
-    phone = forms.CharField(max_length=15, required=False)
+    phone = forms.CharField(
+        max_length=10,
+        required=False,
+        validators=[phone_validator],
+        help_text='Enter 10-digit mobile number'
+    )
 
     class Meta:
         model = CustomUser
         fields = [
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'phone',
-            'password1',
-            'password2',
+            'username', 'first_name', 'last_name',
+            'email', 'phone', 'password1', 'password2',
         ]
 
     def save(self, commit=True):

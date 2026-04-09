@@ -1,5 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.validators import RegexValidator
+
+phone_validator = RegexValidator(
+    regex=r'^\d{10}$',
+    message='Phone number must be exactly 10 digits.'
+)
 
 
 class CustomUser(AbstractUser):
@@ -15,7 +21,11 @@ class CustomUser(AbstractUser):
         choices=ROLE_CHOICES,
         default=STUDENT
     )
-    phone = models.CharField(max_length=15, blank=True)
+    phone = models.CharField(
+    max_length=10,
+    blank=True,
+    validators=[phone_validator]
+)
     address = models.TextField(blank=True)
     member_id = models.CharField(max_length=20, unique=True, blank=True, null=True, default=None)
 

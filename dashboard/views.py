@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from datetime import date
 from books.models import Book
 from transactions.models import BorrowRecord
@@ -45,6 +45,25 @@ def home(request):
 
     unavailable_books = Book.objects.filter(available_copies=0)
 
+    # All students with their borrow stats and total fines
+    students = CustomUser.objects.filter(role='student').annotate(
+        total_borrows=Count('borrow_records'),
+        active_borrows=Count(
+            'borrow_records',
+            filter=Q(borrow_records__status='borrowed')
+        ),
+        total_fines=Sum('borrow_records__fine_amount')
+    ).order_by('first_name')
+
+    import json
+    from datetime import timedelta
+    last_7 = [date.today() - timedelta(days=i) for i in range(6, -1, -1)]
+    chart_labels = json.dumps([d.strftime('%d %b') for d in last_7])
+    chart_data = json.dumps([
+        BorrowRecord.objects.filter(borrow_date=d).count()
+        for d in last_7
+    ])
+
     context = {
         'total_books': total_books,
         'total_students': total_students,
@@ -55,5 +74,25 @@ def home(request):
         'total_fines': total_fines,
         'recent_borrows': recent_borrows,
         'unavailable_books': unavailable_books,
+        'students': students,
+        'chart_labels': chart_labels,
+        'chart_data': chart_data,
     }
     return render(request, 'dashboard/home.html', context)
+
+
+@admin_required
+def student_detail(request, student_id):
+    student = get_object_or_404(CustomUser, id=student_id, role='student')
+    borrow_records = BorrowRecord.objects.filter(
+        user=student
+    ).select_related('book').order_by('-borrow_date')
+    total_fine = borrow_records.aggregate(
+        total=Sum('fine_amount')
+    )['total'] or 0
+
+    return render(request, 'dashboard/student_detail.html', {
+        'student': student,
+        'borrow_records': borrow_records,
+        'total_fine': total_fine,
+    })

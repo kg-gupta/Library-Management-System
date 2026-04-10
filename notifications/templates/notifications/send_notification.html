@@ -15,13 +15,19 @@
                 <div class="mb-3">
                     <label class="form-label">Send To</label>
                     <select name="user_id" class="form-select" required>
-                        <option value="all">All Students</option>
+                        <option value="all"
+                        {% if not preselected_user_id %}selected{% endif %}>
+                            -- All Students --
+                        </option>
                         {% for student in students %}
-                            <option value="{{ student.id }}">
-                                {{ student.get_full_name|default:student.username }}
-                                ({{ student.username }})
-                            </option>
-                        {% endfor %}
+                        <option value="{{ student.id }}"
+                        {% if preselected_user_id == student.id|stringformat:"s" %}
+                            selected
+                        {% endif %}>
+                            {{ student.get_full_name|default:student.username }}
+                            ({{ student.username }})
+                        </option>
+                    {% endfor %}
                     </select>
                 </div>
                 <div class="mb-3">

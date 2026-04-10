@@ -6,7 +6,6 @@ from books.models import Book
 from transactions.models import BorrowRecord
 from accounts.models import CustomUser
 
-
 def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:

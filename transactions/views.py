@@ -128,3 +128,20 @@ def all_borrows(request):
     return render(request, 'transactions/all_borrows.html', {
         'records': records
     })
+@login_required
+def renew_borrow(request, record_id):
+    record = get_object_or_404(
+        BorrowRecord, id=record_id, user=request.user
+    )
+    if record.status != 'borrowed':
+        messages.error(request, 'This record cannot be renewed.')
+        return redirect('transactions:my_books')
+    if record.is_overdue():
+        messages.error(request,
+            'Cannot renew an overdue book. Please return it first.')
+        return redirect('transactions:my_books')
+    record.due_date = record.due_date + timedelta(days=7)
+    record.save()
+    messages.success(request,
+        f'Due date extended to {record.due_date.strftime("%d %B %Y")}.')
+    return redirect('transactions:my_books')
